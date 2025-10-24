@@ -40,6 +40,7 @@ const DeveloperProfile: React.FC = () => {
                 <div className="flex gap-4">
                     <Link href="/" className='font-medium text-gray-500 text-md hover:underline cursor-pointer'>Thots</Link>
                     <Link href="https://projectrackr.vercel.app/" className='font-medium text-gray-500 text-md hover:underline cursor-pointer'>ProjectTrackr</Link>
+                    <Link href="terminal" className='font-medium text-gray-500 text-md hover:underline cursor-pointer'>Terminal</Link>
                 </div>
                 <div className="flex">
                     <Link href="https://www.linkedin.com/in/cy-jay-herrera-74b297268/" target="_blank" rel="noopener noreferrer">
