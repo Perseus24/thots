@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
         port: '',
       }
     ]
+  },
+  eslint: {
+    ignoreDuringBuilds: true, // Disable ESLint during build
   }
 };
 

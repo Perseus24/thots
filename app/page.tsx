@@ -1,200 +1,294 @@
 'use client';
-import Header from "./ui/header";
-import Post from "./ui/post";
-import { useState, useEffect, useRef, ChangeEvent, useTransition } from 'react';
-import { todayPosts } from "./lib/supabase";
-import { Posts } from './lib/definitions';
-import { supabase } from './lib/supabase';
-import { User } from "@supabase/supabase-js";
-import ThotsFooter from "./ui/thots-footer";
-import { convertBlobUrlToFile } from "./lib/utils";
-import { uploadImage } from "./lib/storage/client";
-import ImagePickGallery from "./ui/image-pick-gallery";
-import BackToTopBtn from "./ui/back-to-top-btn";
+import { useEffect, useState } from "react";
+import { Github, Linkedin, Coffee,  Facebook, Calendar, MapPin } from 'lucide-react';
+import { icons } from "./lib/icons";
+
 
 export default function Home() {
-  const imageInputRef = useRef<HTMLInputElement>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [username, setUsername] = useState('');
-  const [post, setPost] = useState<Posts[]>([]);
-  const [createPostText, setCreatePostText] = useState<string>("");
-  const [loadingWidth, setLoadingWidth] = useState('0%');
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [isPending] = useTransition();
-  const [currentIndex, setCurrentIndex] = useState(0);
+    const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
+    const [time, setTime] = useState(new Date());
+    const [activeStack, setActiveStack] = useState('backend');
 
-  useEffect(() => {
-    const postsToday = async () => {
-      startLoader();
-      const data = await todayPosts();
-      setPost(data);
-      stopLoader();
-    };
-    const getUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (data?.user) {
-        setUser(data.user);
-        const { data:userData } = await supabase 
-            .from('users')
-            .select('*')
-            .eq('id', data.user.id)
-            .single();
-        if(userData){
-            setUsername(userData.username);
-        }
-      }
-      console.log(data);
-    };
-    console.log("Updated post:", post);
-
-    getUser();
-    postsToday();
-  }, []);
-
-  const scrollToTop = () => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if(e.target.files){
-      const filesArray = Array.from(e.target.files);
-      const newImageUrls = filesArray.map((file) => URL.createObjectURL(file));
-      setImageUrls(prev => {
-        const updated = [...prev, ...newImageUrls];
-        setCurrentIndex(updated.length - 1);  // update to last new image
-        return updated;
-      });
-      
-    }
-  }
-
-  const handleUploadImages = async (id: number) => {
-    const urls = [];
-    for (const url of imageUrls) {
-      const imageFile = await convertBlobUrlToFile(url);
-
-      const { imageUrl, error } = await uploadImage({
-        file: imageFile,
-        bucket: 'hobby',
-        post_id: id
-      });
-
-      if (error) {
-        console.error(error);
-      } else {
-        urls.push(imageUrl);
-      }
+    const techStack = {
+        backend: [
+            { name: 'php' },
+            { name: 'java' },
+            { name: 'laravel' },
+            { name: 'nodejs' },
+            { name: 'mysql' },
+            { name: 'phpmyadmin' },
+        ],
+        frontend: [
+            { name: 'typescript' },
+            { name: 'javascript' },
+            { name: 'react' },
+            { name: 'tailwind' },
+            { name: 'nextjs' },
+            { name: 'flutter' }
+        ],
+        languages: [
+            { name: 'python' },
+            { name: 'dart' },
+            { name: 'r' },
+            { name: 'c' }
+        ],
+        tools: [
+            { name: 'tableau' },
+            { name: 'kaggle' },
+            { name: 'figma' },
+            { name: 'git' },
+            { name: 'vscode' }
+        ]
     }
 
-    setImageUrls([]);
-    return urls;
-  };
-  const startLoader = function(){
-    setLoadingWidth('30%');
-  }
-  const stopLoader = function(){
-    setLoadingWidth('100%');
-    // Reset after delay
-    setTimeout(() => {
-        setLoadingWidth('0%');
-    }, 600);
-  }
+    useEffect(() => {
+        const timer = setInterval(() => setTime(new Date()), 1000);
+        return () => clearInterval(timer);
+    }, []);
+    useEffect(() => {
+        const handleMouseMove = (e: { clientX: any; clientY: any; }) => {
+        setCursorPos({ x: e.clientX, y: e.clientY });
+        };
+        window.addEventListener('mousemove', handleMouseMove);
+        return () => window.removeEventListener('mousemove', handleMouseMove);
+    }, []);
 
-  const createPost = async () => {
-    setLoadingWidth('30%');
-    const { data, error } = await supabase
-      .from('posts')
-      .insert([
-        {
-          post_text: createPostText,
-          like_amount: 0,
-          sender_id: (user) ? user.id : null,
-          comments_amount: 0
-        }
-      ])
-      .select();
+    return (
+        <div className="min-h-screen bg-neutral-50 text-neutral-900 font-mono">
+            <div className="fixed inset-0 pointer-events-none opacity-50" 
+                style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 400 400\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' /%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\' /%3E%3C/svg%3E")'}}></div>
+            <div 
+                className="fixed w-8 h-8 border border-orange-600 rounded-full pointer-events-none z-50 transition-transform duration-200"
+                style={{
+                left: `${cursorPos.x}px`,
+                top: `${cursorPos.y}px`,
+                transform: 'translate(-50%, -50%)'
+                }}
+            ></div>
 
-    if (error) {
-      console.error('Error creating post:', error.message);
-      stopLoader();
-      return;
-    } 
-    
-    const newPost = data[0];
-    setCreatePostText('');
-    if(imageUrls.length > 0 && newPost){
-      await handleUploadImages(newPost.id);
-    }
+            {/* topbar */}
 
-    // once done with writing to the database
-    const {data: uploadedPost, error: uploadPostError } = await supabase  
-      .from('posts')
-      .select(`
-          *,
-          post_images(*)
-      `)
-      .eq('id', newPost.id)
-      .single();
-
-    if (uploadPostError) {
-      console.error('Error uploading images:', uploadPostError.message);
-      stopLoader();
-      return;
-    }
-
-    setPost((prevPosts) => [uploadedPost, ...prevPosts]);
-
-    stopLoader();
-    scrollToTop();
-  };
-  
-  return (
-    <div className="flex min-h-screen bg-[#F4F4F8] relative text-black dark:bg-black pb-20 flex-col">
-      <div id="loading-indicator" style={{
-            width: loadingWidth,
-            transition: 'width 0.3s ease-in-out'
-          }} 
-          className="w-full h-2 bg-green-500 fixed top-0"></div>
-      <div className="px-5 md:px-10 w-full flex flex-col gap-5 ">
-        <Header username={username}/>
-        <div className="flex flex-col md:flex-row gap-10">
-          <main className="flex flex-col gap-5 md:w-3/5">
-            {
-              post.map((post, index) => (
-                <Post key={index} post={post} />
-              ))
-            }
-          </main>
-          <aside className="flex flex-col md:w-2/5 h-min mb-10 md:mb-0">
-            <div className="flex flex-col gap-4 w-full bg-white rounded-lg shadow-sm px-4 py-3 text-[13px] dark:bg-[#1A1A40] dark:text-white">
-              <p className="">{username? `@${username}` : 'Anonymous'}</p>
-              <textarea 
-                rows={6}
-                value={createPostText} 
-                onChange={(e) => setCreatePostText(e.target.value)} 
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none dark:bg-[#1A1A40]" placeholder="What's on your mind?" 
-              />
-              {/* File input */}
-              <input type="file" accept="image/*" disabled={isPending} ref={imageInputRef} multiple hidden onChange={handleImageChange}/>
-              <button type="button" disabled={isPending} className="bg-[#1A1A40] text-white px-4 py-1.5 rounded-lg dark:bg-white dark:text-black" onClick={() => imageInputRef.current?.click()}>Select Images</button>
-              <ImagePickGallery 
-                imageUrls={imageUrls} 
-                onImageChange={handleImageChange}
-                currentIndex={currentIndex}
-                setCurrentIndex={setCurrentIndex}
-                setImageUrls={setImageUrls}/>
-              <div className="w-full flex justify-end">
-                <button 
-                  onClick={createPost} 
-                  disabled={isPending}
-                  className="px-4 py-1.5 bg-black text-white rounded-lg dark:bg-white dark:text-black">Post</button>
-              </div>
+            <div className="fixed top-0 w-full z-40 bg-black px-8 py-3">
+                <div className="flex justify-between items-center text-white">
+                    <div className="flex gap-3">
+                        <p className="text-orange-400">{">"}_</p>
+                        <p>~/portfolio</p>
+                        <span className="text-neutral-600">|</span>
+                        <span className="text-neutral-500">{time.toLocaleTimeString('en-US', { hour12: false })}</span>
+                    </div>
+                    <div className="flex gap-5">
+                        <a>work</a>
+                        <a>projects</a>
+                        <a>thots</a>
+                    </div>
+                </div>
             </div>
-          </aside>
+
+            {/* Main content */}
+            <div className="flex flex-col px-8 items">
+                <div className="py-32 flex flex-col">
+                    <p className="text-neutral-500">[ fresh_grad = TRUE ]</p>
+                    <p className="mt-2 mb-4 text-6xl leading-tight font-light">
+                        cy jay herrera,<br/>
+                        <span className="text-neutral-600 italic">full stack developer</span>
+                    </p>
+                    <p className="leading-relaxed max-w-xl text-neutral-600">
+                        i get paid for staring at a screen for 8 hours everyday. currently building a system with laravel, 
+                        trying to normalize tables and queries, and putting rounded borders everywhere.
+                    </p>
+                    <div className="flex gap-3 mt-7">
+                        <a 
+                            href="https://github.com/Perseus24" 
+                            className="flex gap-2 justify-center items-center bg-neutral-900 text-neutral-100 px-4 py-2 hover:bg-orange-400 transition-colors">
+                            <Github size={16} />
+                            github
+                        </a>
+                        <a 
+                            href="https://www.linkedin.com/in/cy-jay-herrera-74b297268/" 
+                            className="flex gap-2 justify-center items-center border border-neutral-900 text-neutral-900 px-4 py-2 
+                                hover:border-orange-400 hover:text-orange-600 transition-colors">
+                            <Linkedin size={16} />
+                            linkedin
+                        </a>
+                        <a 
+                            href="https://github.com/Perseus24" 
+                            className="flex gap-2 justify-center items-center border border-neutral-900 text-neutral-900 px-4 py-2 
+                                hover:border-orange-400 hover:text-orange-600 transition-colors">
+                            <Facebook size={16} />
+                            facebook
+                        </a>
+                    </div>
+                </div>
+
+                {/* tech stack */}
+                <p className="mb-6 text-neutral-700 tracking-wider">tech stack</p>
+                <div className="flex gap-2 border-b border-neutral-400 mb-5">
+                    {
+                        Object.keys(techStack).map((key) => (
+                            <div 
+                                key={key}
+                                onClick={() => setActiveStack(key)}
+                                className={`px-4 py-2 text-sm transition-colors relative cursor-pointer ${
+                                    activeStack === key 
+                                        ? 'text-orange-600' 
+                                        : 'text-neutral-500 hover:text-neutral-900'
+                                    }`}
+                                >
+                                <p>{key}</p>
+                                {activeStack === key && (
+                                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-600"></div>
+                                )}
+                            </div>
+                        ))
+                    }
+                </div>
+                <div className="grid grid-cols-4 gap-4 mb-24">
+                    {
+                        techStack[activeStack as keyof typeof techStack].map((tech, index) => (
+                            <div key={index} className="flex flex-col justify-between gap-2 p-6 border border-neutral-400 transition-all hover:shadow-lg hover:border-orange-600">
+                                {icons[tech.name as keyof typeof icons]}
+                                <p className="font-medium text-neutral-600">{tech.name}</p>
+                            </div>
+                        ))
+                    }
+                </div>
+                {/* Experience */}
+                <p className="mb-6 text-neutral-700 tracking-wider">notable experiences</p>
+                <div className="pl-8 flex flex-col gap-3 relative group">
+                    <div className="absolute left-0 top-0 bottom-0 w-px bg-neutral-200 group-hover:bg-orange-600 transition-colors"></div>
+                    <p className="tracking-wide text-2xl font-medium group-hover:text-orange-600 transition-colors">full stack developer</p>
+                    <div className="flex items-center gap-3">
+                        <p className="font-medium text-neutral-600">Bicol University Research Development and Management Division</p>
+                        <p className="text-neutral-400">•</p>
+                        <p className="text-sm text-neutral-500">Job Order</p>
+                    </div>
+                    <div className="flex items-center gap-5 text-neutral-500 text-sm mb-2">
+                        <div className="flex items-center gap-1">
+                            <Calendar size={16} />
+                            <p>July 2025 - Present</p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <MapPin size={16} />
+                            <p>Onsite</p>
+                        </div>
+                    </div>
+                    <ul className="gap-2 max-w-6xl">
+                        <li className="text-neutral-600 text-sm leading-relaxed flex items-start gap-2">
+                            <span className="text-orange-600">→</span>
+                            <span>Designed a relational database schema for RDESys to reduce redundancy and ensure data integrity.
+                            </span>
+                        </li>
+                        <li className="text-neutral-600 text-sm leading-relaxed flex items-start gap-2">
+                            <span className="text-orange-600">→</span>
+                            <span>Developed both frontend and backend for PROMIS+, streamlining the proposal submission process with a user-friendly interface.
+                            </span>
+                        </li>
+                        <li className="text-neutral-600 text-sm leading-relaxed flex items-start gap-2">
+                            <span className="text-orange-600">→</span>
+                            <span>Built features for reports generation and data analytics, empowering users and admins to derive meaningful insights.
+                            </span>
+                        </li>
+                        <li className="text-neutral-600 text-sm leading-relaxed flex items-start gap-2">
+                            <span className="text-orange-600">→</span>
+                            <span>Led the development of clean, maintainable code, adhering to best practices for security, scalability, and data privacy.
+                            </span>
+                        </li>
+                        <li className="text-neutral-600 text-sm leading-relaxed flex items-start gap-2">
+                            <span className="text-orange-600">→</span>
+                            <span>Collaborated with the Bicol University – ICTO for system integration and deployment, ensuring alignment with infrastructure and server needs.
+                            </span>
+                        </li>
+                    </ul>
+                    <div className="text-xs text-neutral-500">
+                        Laravel · Inertia · VueJs · PHP · MySQL
+                    </div>
+                </div>
+                <div className="mt-10 pl-8 flex flex-col gap-3 relative group">
+                    <div className="absolute left-0 top-0 bottom-0 w-px bg-neutral-200 group-hover:bg-orange-600 transition-colors"></div>
+                    <p className="tracking-wide text-2xl font-medium group-hover:text-orange-600 transition-colors">software engineer intern</p>
+                    <div className="flex items-center gap-3">
+                        <p className="font-medium text-neutral-600">Roompal</p>
+                        <p className="text-neutral-400">•</p>
+                        <p className="text-sm text-neutral-500">Internship</p>
+                    </div>
+                    <div className="flex items-center gap-5 text-neutral-500 text-sm mb-2">
+                        <div className="flex items-center gap-1">
+                            <Calendar size={16} />
+                            <p>January 2024 - April 2024</p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <MapPin size={16} />
+                            <p>Remote</p>
+                        </div>
+                    </div>
+                    <ul className="gap-2 max-w-6xl">
+                        <li className="text-neutral-600 text-sm leading-relaxed flex items-start gap-2">
+                            <span className="text-orange-600">→</span>
+                            <span>Learned the fundamentals of Flutter and its applications.
+                            </span>
+                        </li>
+                        <li className="text-neutral-600 text-sm leading-relaxed flex items-start gap-2">
+                            <span className="text-orange-600">→</span>
+                            <span>Developed multiple basic mobile applications using Flutter such as a To-Do app.
+                            </span>
+                        </li>
+                        <li className="text-neutral-600 text-sm leading-relaxed flex items-start gap-2">
+                            <span className="text-orange-600">→</span>
+                            <span>Designed and developed two features (search and filter bar) for the company's web and mobile app using Flutter and Android Studio.
+                            </span>
+                        </li>
+                        <li className="text-neutral-600 text-sm leading-relaxed flex items-start gap-2">
+                            <span className="text-orange-600">→</span>
+                            <span>Rendered 200+ hours remotely and presented the final output onsite.
+                            </span>
+                        </li>
+                        <li className="text-neutral-600 text-sm leading-relaxed flex items-start gap-2">
+                            <span className="text-orange-600">→</span>
+                            <span>Completed the company's Flutter bootcamp.
+                            </span>
+                        </li>
+                    </ul>
+                    <div className="text-xs text-neutral-500">
+                        Flutter · Dart
+                    </div>
+                </div>
+                {/* Certifications */}
+                <p className="mb-6 text-neutral-700 tracking-wider mt-24">certifications</p>
+                <div className="flex gap-4 pl-8">
+                    <div className="flex flex-1 flex-col gap-3">
+                        <div className="flex items-center gap-2 text-xs">
+                            <p className=" text-neutral-600 tracking-wide">NRG-TESDA PHILIPPINES ·</p>
+                            <div className="px-3 py-2 bg-orange-500 text-white tracking-wide">NATIONAL CERTIFICATION</div>
+                        </div>
+                        <p className="font-medium text-2xl tracking-wider">Programming (Java) NC III</p>
+                        <div className="flex flex-col gap-1 text-sm">
+                            <p className=" text-neutral-600 tracking-wide font-medium">February 2024 - March 2024</p>
+                            <p className=" text-neutral-600 tracking-wide">Competency-based</p>
+                        </div>
+                    </div>
+                    <div className="flex flex-1 flex-col gap-3">
+                        <div className="flex items-center gap-2 text-xs">
+                            <p className=" text-neutral-600 tracking-wide">GOOGLE VIA COURSERA ·</p>
+                            <div className="px-3 py-2 bg-blue-500 text-white tracking-wide">PROFESSIONAL CERTIFICATE</div>
+                        </div>
+                        <p className="font-medium text-2xl tracking-wider">Google Data Analytics Professional</p>
+                        <div className="flex flex-col gap-1 text-sm">
+                            <p className=" text-neutral-600 tracking-wide font-medium">September 2022 - June 2023</p>
+                            <p className=" text-neutral-600 tracking-wide">8-Course series</p>
+                        </div>
+                    </div>
+                </div>
+                {/* Footer */}
+                <footer className="border-t border-neutral-200 py-12 mt-10">
+                    <div className="flex justify-between items-center text-sm text-neutral-500">
+                        <p>© 2025 · built with nextjs, caffeine, and mild existential dread</p>
+                        <div className="flex items-center gap-2">
+                            <Coffee size={16} />
+                            <span>probably debugging rn</span>
+                        </div>
+                    </div>
+                </footer>
+            </div>
         </div>
-      </div>
-      <BackToTopBtn />
-      <ThotsFooter />
-    </div>
-  );
+    )
 }
