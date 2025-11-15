@@ -1,8 +1,6 @@
 'use client';
 import { useEffect, useState } from "react";
 import { Github, Linkedin, Coffee,  Facebook, Calendar, MapPin } from 'lucide-react';
-import TechStackItem from "./ui/tech-stack-item";
-import Image from "next/image";
 import { icons } from "./lib/icons";
 
 
@@ -256,6 +254,30 @@ export default function Home() {
                 </div>
                 {/* Certifications */}
                 <p className="mb-6 text-neutral-700 tracking-wider mt-24">certifications</p>
+                <div className="flex gap-4 pl-8">
+                    <div className="flex flex-1 flex-col gap-3">
+                        <div className="flex items-center gap-2 text-xs">
+                            <p className=" text-neutral-600 tracking-wide">NRG-TESDA PHILIPPINES ·</p>
+                            <div className="px-3 py-2 bg-orange-500 text-white tracking-wide">NATIONAL CERTIFICATION</div>
+                        </div>
+                        <p className="font-medium text-2xl tracking-wider">Programming (Java) NC III</p>
+                        <div className="flex flex-col gap-1 text-sm">
+                            <p className=" text-neutral-600 tracking-wide font-medium">February 2024 - March 2024</p>
+                            <p className=" text-neutral-600 tracking-wide">Competency-based</p>
+                        </div>
+                    </div>
+                    <div className="flex flex-1 flex-col gap-3">
+                        <div className="flex items-center gap-2 text-xs">
+                            <p className=" text-neutral-600 tracking-wide">GOOGLE VIA COURSERA ·</p>
+                            <div className="px-3 py-2 bg-blue-500 text-white tracking-wide">PROFESSIONAL CERTIFICATE</div>
+                        </div>
+                        <p className="font-medium text-2xl tracking-wider">Google Data Analytics Professional</p>
+                        <div className="flex flex-col gap-1 text-sm">
+                            <p className=" text-neutral-600 tracking-wide font-medium">September 2022 - June 2023</p>
+                            <p className=" text-neutral-600 tracking-wide">8-Course series</p>
+                        </div>
+                    </div>
+                </div>
                 {/* Footer */}
                 <footer className="border-t border-neutral-200 py-12 mt-10">
                     <div className="flex justify-between items-center text-sm text-neutral-500">
